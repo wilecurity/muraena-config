@@ -87,7 +87,7 @@
 [tracking]
     enable = true
     trackRequestCookie = true
-
+    trackResponseCookie = true
     [tracking.trace]
         identifier = "_gat"
         validator = "[a-zA-Z0-9]{5}"
